@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#0E1230">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Trivia Right · Jugar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="/styles.css">
+<style>
+body{display:flex;flex-direction:column;min-height:100%;padding:env(safe-area-inset-top,0px) max(16px,env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(16px,env(safe-area-inset-left,0px));transition:background-color .3s;overscroll-behavior:none;-webkit-user-select:none;user-select:none}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 0;font:700 14px/1 var(--f-mono);color:var(--muted)}
+.bar b{color:var(--ink)}
+.screen{flex:1;display:flex;flex-direction:column;gap:18px;padding-bottom:20px;min-height:0}
+.center{justify-content:center;align-items:center;text-align:center}
+h1{margin:0;font:800 clamp(30px,8vw,44px)/1.05 var(--f-display);letter-spacing:-.02em;text-wrap:balance}
+h2{margin:0;font:800 clamp(26px,7vw,38px)/1.1 var(--f-display);text-wrap:balance}
+.sub{margin:0;color:var(--muted);font-size:17px;max-width:32ch;text-wrap:balance}
+
+/* Unirse */
+form{display:flex;flex-direction:column;gap:12px;width:min(100%,380px);margin:auto}
+.logo{font:800 15px/1 var(--f-display);color:var(--muted);text-align:center;margin-bottom:8px}
+form h1{text-align:center;margin-bottom:10px}
+label{font:700 13px/1 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+input{width:100%;background:var(--ink);color:#0E1230;border:0;border-radius:14px;padding:18px;font:800 22px/1 var(--f-display);text-align:center}
+input#pin{font-family:var(--f-mono);letter-spacing:.2em;font-size:28px}
+input::placeholder{color:#9AA0C8;letter-spacing:normal;font-weight:700}
+.err{color:#FCA5A5;font-weight:700;text-align:center;min-height:1.4em;margin:0}
+form .btn{margin-top:6px;padding:20px}
+
+/* Esperas */
+.big-shape{font-size:96px;color:var(--accent)}
+.spin{width:54px;height:54px;border-radius:50%;border:6px solid var(--surface);border-top-color:var(--accent);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.me{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 20px;font:800 22px/1 var(--f-display)}
+.count{font:800 72px/1 var(--f-mono)}
+
+/* Respuestas */
+.grid{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:12px;grid-auto-rows:1fr;min-height:340px}
+.ans{border:0;border-radius:18px;background:var(--c);color:var(--k);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;font:800 clamp(18px,5vw,24px)/1.1 var(--f-display);box-shadow:0 6px 0 rgba(0,0,0,.3);touch-action:manipulation;padding:12px}
+.ans .shape{font-size:46px}
+.ans:active{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.3)}
+.ans:last-child{grid-column:1/-1}
+.ans:disabled{opacity:.3}
+.tbar{height:8px;border-radius:4px;background:var(--surface);overflow:hidden}
+.tbar i{display:block;height:100%;background:var(--accent);transform-origin:left}
+
+/* Resultado */
+body.ok{background:#14803D} body.bad{background:#B91C1C}
+body.ok .bar,body.bad .bar{color:rgba(255,255,255,.75)}
+.mark{width:120px;height:120px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.18);font:800 64px/1 var(--f-display)}
+.gain{background:rgba(0,0,0,.22);border-radius:14px;padding:14px 22px;font:800 30px/1 var(--f-mono)}
+.streak{font:800 16px/1 var(--f-mono);letter-spacing:.08em;background:var(--gold);color:#1A1400;border-radius:999px;padding:9px 14px}
+.place{font-size:18px;font-weight:700}
+.place b{font-size:1.3em}
+
+/* Final */
+.medal{width:150px;height:150px;border-radius:50%;display:grid;place-items:center;font:800 72px/1 var(--f-display);box-shadow:inset 0 -8px 0 rgba(0,0,0,.18)}
+.m1{background:#F2B705;color:#3A2C00}.m2{background:#C9CEDF;color:#2B3050}.m3{background:#D9844A;color:#3B1E08}.mx{background:var(--surface);color:var(--ink)}
+.facts{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+</style>
+</head>
+<body>
+<div class="bar" id="topbar" hidden><span id="tbName"></span><span>Puntos <b id="tbScore" class="mono">0</b></span></div>
+
+<section class="screen" id="join">
+  <form id="joinForm" autocomplete="off">
+    <div class="logo">Right Management · Trivia en vivo</div>
+    <h1>¿Qué solución ofrecerías?</h1>
+    <label for="pin">PIN del juego</label>
+    <input id="pin" inputmode="numeric" maxlength="7" placeholder="000 000" required>
+    <label for="name">Tu nombre</label>
+    <input id="name" maxlength="16" placeholder="Cómo te verán en pantalla" required>
+    <p class="err" id="err" role="alert"></p>
+    <button class="btn" type="submit" id="joinBtn">Entrar</button>
+  </form>
+</section>
+
+<section class="screen center" id="lobby" hidden>
+  <div class="spin"></div>
+  <h2>¡Ya estás dentro!</h2>
+  <div class="me" id="lobbyName"></div>
+  <p class="sub">Busca tu nombre en la pantalla. El juego empieza en cuanto el anfitrión lo indique.</p>
+</section>
+
+<section class="screen center" id="wait" hidden>
+  <div class="spin"></div>
+  <h2 id="waitTitle">Un momento…</h2>
+  <p class="sub" id="waitMsg"></p>
+</section>
+
+<section class="screen center" id="preview" hidden>
+  <p class="sub" id="pvNum"></p>
+  <div class="count" id="pvCount">3</div>
+  <h2>Mira la pantalla</h2>
+  <p class="sub" id="pvLvl"></p>
+</section>
+
+<section class="screen" id="answer" hidden>
+  <div class="tbar"><i id="tb"></i></div>
+  <div class="grid" id="grid"></div>
+</section>
+
+<section class="screen center" id="answered" hidden>
+  <div class="big-shape" id="chosen"></div>
+  <h2>Respuesta enviada</h2>
+  <p class="sub">¿Habrás sido el más rápido? Espera el resultado.</p>
+</section>
+
+<section class="screen center" id="result" hidden>
+  <div class="mark" id="rsMark"></div>
+  <h1 id="rsTitle"></h1>
+  <div class="gain" id="rsGain"></div>
+  <div class="streak" id="rsStreak" hidden></div>
+  <p class="place" id="rsPlace"></p>
+  <p class="sub" id="rsAhead" style="color:rgba(255,255,255,.85)"></p>
+</section>
+
+<section class="screen center" id="final" hidden>
+  <p class="sub">Resultado final</p>
+  <div class="medal" id="fnMedal"></div>
+  <h1 id="fnTitle"></h1>
+  <div class="facts" id="fnFacts"></div>
+  <p class="sub" id="fnMsg"></p>
+</section>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/shared.js"></script>
+<script>
+const socket = io();
+let SOL = [], me = null, raf = null, t1 = null;
+const sol = (id) => SOL.find((s) => s.id === id) || {};
+const stop = () => { cancelAnimationFrame(raf); clearTimeout(t1); document.body.className = ""; };
+const store = { get() { try { return JSON.parse(localStorage.getItem("triviaPlayer")); } catch (e) { return null; } },
+  set(v) { try { localStorage.setItem("triviaPlayer", JSON.stringify(v)); } catch (e) {} },
+  clear() { try { localStorage.removeItem("triviaPlayer"); } catch (e) {} } };
+const vibrate = (p) => { try { navigator.vibrate?.(p); } catch (e) {} };
+
+const params = new URLSearchParams(location.search);
+const pinParam = (params.get("pin") || "").replace(/\D/g, "");
+if (pinParam) { $("#pin").value = pinParam.replace(/(\d{3})(\d{3})/, "$1 $2"); }
+$("#pin").addEventListener("input", (e) => { const d = e.target.value.replace(/\D/g, "").slice(0, 6); e.target.value = d.length > 3 ? d.slice(0, 3) + " " + d.slice(3) : d; });
+
+function enter(res) {
+  if (!res.ok) { $("#err").textContent = res.error; $("#joinBtn").disabled = false; show("join"); return; }
+  me = res; SOL = res.solutions;
+  store.set({ pin: res.pin, cid: res.cid, name: res.name });
+  $("#topbar").hidden = false; $("#tbName").textContent = res.name;
+}
+$("#joinForm").addEventListener("submit", (e) => {
+  e.preventDefault(); $("#err").textContent = ""; $("#joinBtn").disabled = true;
+  const pin = $("#pin").value.replace(/\D/g, ""), name = $("#name").value.trim();
+  const saved = store.get();
+  socket.emit("player:join", { pin, name, cid: saved && saved.pin === pin && saved.name.toLowerCase() === name.toLowerCase() ? saved.cid : null }, enter);
+});
+// Reconexión automática (si se recarga o se cae la señal)
+socket.on("connect", () => {
+  const saved = store.get();
+  if (saved && (!pinParam || saved.pin === pinParam)) socket.emit("player:join", saved, (r) => { if (r.ok) enter(r); else { store.clear(); $("#topbar").hidden = true; show("join"); } });
+});
+
+socket.on("lobby", (d) => { stop(); $("#lobbyName").textContent = d.name; $("#tbScore").textContent = 0; show("lobby"); });
+socket.on("wait", (d) => { stop(); $("#waitTitle").textContent = "Un momento…"; $("#waitMsg").textContent = d.msg; show("wait"); });
+
+socket.on("question", (d) => {
+  syncClock(d); stop();
+  $("#pvNum").textContent = `Pregunta ${d.i + 1} de ${d.total}`;
+  $("#pvLvl").textContent = `${d.level} · hasta ${d.points} puntos`;
+  const open = () => {
+    show("answer"); vibrate(40);
+    $("#grid").innerHTML = SOL.map((s) => `<button class="ans" data-id="${s.id}" style="--c:${s.color};--k:${s.ink}">${shapeSvg(s.shape)}<span>${esc(s.name)}</span></button>`).join("");
+    const total = d.time * 1000, bar = $("#tb");
+    const loop = () => { const left = Math.max(0, d.closeAt - serverNow()); bar.style.transform = `scaleX(${left / total})`;
+      if (left > 0) raf = requestAnimationFrame(loop); else { $$(".ans").forEach((b) => (b.disabled = true)); $("#waitTitle").textContent = "¡Se acabó el tiempo!"; $("#waitMsg").textContent = "Mira la respuesta en la pantalla."; show("wait"); } };
+    loop();
+  };
+  const toOpen = d.openAt - serverNow();
+  if (toOpen > 150) {
+    show("preview");
+    const cd = () => { const s = Math.ceil((d.openAt - serverNow()) / 1000); $("#pvCount").textContent = Math.max(s, 1); if (s > 0) raf = requestAnimationFrame(cd); };
+    cd(); t1 = setTimeout(() => { cancelAnimationFrame(raf); open(); }, toOpen);
+  } else open();
+});
+$("#grid").addEventListener("click", (e) => {
+  const b = e.target.closest(".ans"); if (!b || b.disabled) return;
+  $$(".ans").forEach((x) => (x.disabled = true));
+  vibrate(20);
+  socket.emit("player:answer", { choice: b.dataset.id });
+});
+socket.on("answered", (d) => { stop(); const s = sol(d.choice); $("#chosen").innerHTML = shapeSvg(s.shape); $("#chosen").style.color = s.color; show("answered"); });
+
+socket.on("result", (d) => {
+  stop();
+  document.body.className = d.ok ? "ok" : "bad";
+  $("#rsMark").textContent = d.ok ? "✓" : "✕";
+  $("#rsTitle").textContent = d.ok ? "¡Correcto!" : d.answered ? "Incorrecto" : "Sin respuesta";
+  $("#rsGain").textContent = d.ok ? `+ ${d.gained + d.bonus}` : `Era ${sol(d.answer).name}`;
+  $("#rsStreak").hidden = !(d.ok && d.streak >= 2);
+  $("#rsStreak").textContent = d.bonus ? `RACHA ×${d.streak} · +${d.bonus} BONUS` : `RACHA ×${d.streak}`;
+  $("#rsPlace").innerHTML = `Vas en el puesto <b>${d.rank}</b> de ${d.of}`;
+  $("#rsAhead").textContent = d.ahead ? `A ${d.ahead.gap.toLocaleString("es-PE")} pts de ${d.ahead.name}` : d.of > 1 ? "¡Vas primero! Defiende el puesto." : "";
+  $("#tbScore").textContent = d.score.toLocaleString("es-PE");
+  vibrate(d.ok ? [30, 40, 30] : 200);
+  show("result");
+});
+
+socket.on("final", (d) => {
+  stop();
+  const m = $("#fnMedal"); m.className = `medal ${d.rank <= 3 ? "m" + d.rank : "mx"}`; m.textContent = d.rank;
+  $("#fnTitle").textContent = d.rank === 1 ? "¡Ganaste!" : d.rank <= 3 ? "¡Subiste al podio!" : `Puesto ${d.rank} de ${d.of}`;
+  const pct = Math.round((d.correct / d.total) * 100);
+  $("#fnFacts").innerHTML = `<span class="pill">${d.score.toLocaleString("es-PE")} pts</span><span class="pill">${d.correct}/${d.total} aciertos</span><span class="pill">${pct}%</span>`;
+  $("#fnMsg").textContent = pct >= 90 ? "Dominio sobresaliente. Ya detectas oportunidades como un experto." : pct >= 75 ? "Dominio satisfactorio. Estás listo para tus próximas reuniones." : pct >= 60 ? "Vas en camino. Repasa las frases clave de cada solución." : "Repasa la presentación y vuelve por la revancha.";
+  $("#tbScore").textContent = d.score.toLocaleString("es-PE");
+  if (d.rank <= 3) confetti(3500);
+  show("final");
+});
+
+socket.on("kicked", () => { stop(); store.clear(); $("#topbar").hidden = true; $("#err").textContent = "El anfitrión te sacó de la partida."; $("#joinBtn").disabled = false; show("join"); });
+socket.on("ended", () => { stop(); store.clear(); $("#topbar").hidden = true; $("#err").textContent = "La partida terminó."; $("#joinBtn").disabled = false; show("join"); });
+</script>
+</body>
+</html>

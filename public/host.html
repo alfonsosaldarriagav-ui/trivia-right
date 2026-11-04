@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Trivia Right · Anfitrión</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="/styles.css">
+<style>
+body{display:flex;flex-direction:column;min-height:100%;font-size:clamp(15px,1.1vw,20px)}
+.top{display:flex;align-items:center;gap:14px;padding:14px max(20px,env(safe-area-inset-right,0px)) 14px max(20px,env(safe-area-inset-left,0px));flex-wrap:wrap}
+.brand{font:800 15px/1 var(--f-display);letter-spacing:.02em}
+.brand span{color:var(--muted);font-weight:600}
+.top .grow{flex:1}
+.top .pinTag{font:700 15px/1 var(--f-mono);color:var(--muted)} .top .pinTag b{color:var(--ink)}
+.icon{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font:700 13px/1 var(--f-mono);color:var(--muted)}
+main{flex:1;display:flex;flex-direction:column;padding:8px max(20px,env(safe-area-inset-right,0px)) 24px max(20px,env(safe-area-inset-left,0px));gap:20px;min-height:0}
+.screen{flex:1;display:flex;flex-direction:column;gap:22px;min-height:0;width:100%;max-width:1500px;margin:0 auto}
+.controls{display:flex;justify-content:flex-end;gap:12px;align-items:center}
+.controls .hint{font:600 13px/1 var(--f-mono);color:var(--muted);margin-right:auto}
+
+/* LOBBY */
+.join{display:grid;grid-template-columns:1fr auto;gap:28px;align-items:center;background:var(--ink);color:var(--bg);border-radius:26px;padding:clamp(20px,3vw,40px)}
+.join .lbl{font:700 clamp(15px,1.3vw,20px)/1.2 var(--f-body);color:#4B5290}
+.join .url{font:800 clamp(22px,2.6vw,40px)/1.1 var(--f-display);margin:4px 0 18px;word-break:break-all}
+.join .pin{font:800 clamp(64px,9vw,150px)/.9 var(--f-mono);letter-spacing:.04em}
+.qr{background:#fff;border-radius:16px;padding:12px;width:clamp(150px,15vw,230px);aspect-ratio:1;display:grid;place-items:center}
+.qr img,.qr canvas{width:100%!important;height:auto!important;display:block}
+.lobbyHead{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.lobbyHead h1{margin:0;font:800 clamp(30px,3.6vw,56px)/1 var(--f-display);letter-spacing:-.02em;text-wrap:balance}
+.count{font:800 clamp(18px,1.6vw,24px)/1 var(--f-mono);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 16px}
+.players{display:flex;flex-wrap:wrap;gap:10px;align-content:flex-start;flex:1;overflow:auto;min-height:80px}
+.players .empty{color:var(--muted);font-size:1.1em;margin:auto;text-align:center}
+.chip{animation:pop .35s both;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 16px;font:700 clamp(16px,1.3vw,22px)/1 var(--f-display);cursor:pointer}
+.chip:hover{text-decoration:line-through;border-color:var(--bad)}
+.chip.off{opacity:.45}
+
+/* PREVIEW + PREGUNTA */
+.qmeta{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.qmeta .num{font:700 14px/1 var(--f-mono);color:var(--muted);margin-left:auto}
+.qcard{background:var(--ink);color:#0E1230;border-radius:24px;padding:clamp(22px,3vw,44px);display:flex;flex-direction:column;gap:12px}
+.qcard .lead{font:700 clamp(15px,1.3vw,20px)/1.2 var(--f-body);color:#4B5290;margin:0}
+.qtext{margin:0;font:800 clamp(28px,3.6vw,62px)/1.1 var(--f-display);letter-spacing:-.015em;text-wrap:balance}
+.qtext.said::before{content:"“"}.qtext.said::after{content:"”"}
+.qcard .ctx{margin:0;font:600 clamp(16px,1.4vw,22px)/1.3 var(--f-body);color:#3D447E}
+#preview .qcard{flex:1;justify-content:center;text-align:center;align-items:center}
+#preview .qtext{font-size:clamp(34px,4.8vw,80px)}
+.bar{height:10px;border-radius:5px;background:var(--surface);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);transform-origin:left}
+
+.mid{display:flex;align-items:center;justify-content:space-between;gap:20px;flex:1}
+.ring{position:relative;width:clamp(110px,11vw,170px);aspect-ratio:1}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:9}
+.ring .trk{stroke:var(--surface)} .ring .val{stroke:var(--accent);stroke-linecap:round;transition:stroke .3s}
+.ring.low .val{stroke:var(--bad)}
+.ring b{position:absolute;inset:0;display:grid;place-items:center;font:800 clamp(38px,4vw,64px)/1 var(--f-mono)}
+.answers{text-align:center} .answers b{display:block;font:800 clamp(48px,5vw,84px)/1 var(--f-mono)} .answers span{color:var(--muted);font-weight:700}
+
+.tiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}
+.tile{background:var(--c);color:var(--k);border-radius:18px;padding:clamp(16px,1.8vw,26px) 18px;display:flex;align-items:center;gap:14px;font:800 clamp(18px,1.7vw,30px)/1.05 var(--f-display);box-shadow:0 6px 0 rgba(0,0,0,.28);min-height:clamp(80px,9vw,130px);position:relative;transition:opacity .3s,transform .3s}
+.tile .shape{font-size:1.4em}
+.tile.dim{opacity:.22;transform:scale(.97)}
+.tile .ok{position:absolute;top:10px;right:12px;font-size:.9em}
+
+/* REVEAL */
+.chart{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;align-items:end;flex:1;min-height:180px}
+.col{display:flex;flex-direction:column;align-items:stretch;gap:10px;height:100%;justify-content:flex-end}
+.col .n{font:800 clamp(24px,2.4vw,40px)/1 var(--f-mono);text-align:center}
+.col .b{background:var(--c);border-radius:12px 12px 4px 4px;min-height:10px;transition:height .8s cubic-bezier(.2,.8,.2,1);height:0}
+.col.dim .b,.col.dim .n{opacity:.3}
+.col .tile{min-height:0;padding:14px;font-size:clamp(15px,1.3vw,22px);box-shadow:none}
+.why{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:20px 24px}
+.why .badge{background:var(--c);color:var(--k);border-radius:14px;padding:14px 18px;display:flex;gap:10px;align-items:center;font:800 clamp(18px,1.6vw,26px)/1 var(--f-display)}
+.why p{margin:0;font-size:clamp(16px,1.3vw,21px);max-width:80ch}
+.why small{display:block;color:var(--muted);font:600 13px/1.4 var(--f-mono);margin-top:6px}
+.stats{display:flex;gap:10px;flex-wrap:wrap}
+
+/* RANKING */
+.title{margin:0;font:800 clamp(34px,4vw,64px)/1 var(--f-display);letter-spacing:-.02em;text-align:center}
+.board{display:flex;flex-direction:column;gap:12px;width:min(100%,960px);margin:0 auto}
+.row{display:grid;grid-template-columns:64px 1fr auto auto;gap:18px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 22px;font:800 clamp(20px,1.8vw,30px)/1 var(--f-display)}
+.row:first-child{background:var(--ink);color:var(--bg)}
+.row .r{font-family:var(--f-mono)} .row .s{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.row .m{font:700 14px/1 var(--f-mono);min-width:44px;text-align:right}
+.m.up{color:var(--ok)} .m.down{color:var(--bad)} .m.same{color:var(--muted)}
+.row:first-child .m.same{color:#6B71A0}
+
+/* PODIO */
+#podium{align-items:center}
+.stage{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(10px,2vw,28px);align-items:end;width:min(100%,1100px);flex:1;min-height:300px}
+.slot{display:flex;flex-direction:column;align-items:center;gap:12px;justify-content:flex-end;height:100%}
+.slot .who{text-align:center;opacity:0;transform:translateY(20px);transition:all .6s cubic-bezier(.2,.8,.2,1)}
+.slot.on .who{opacity:1;transform:none}
+.slot .name{font:800 clamp(22px,2.6vw,46px)/1.05 var(--f-display);word-break:break-word}
+.slot .pts{font:700 clamp(15px,1.3vw,22px)/1.2 var(--f-mono);color:var(--muted);margin-top:6px}
+.block{width:100%;border-radius:18px 18px 0 0;display:flex;justify-content:center;padding-top:18px;font:800 clamp(48px,6vw,110px)/1 var(--f-display);height:0;transition:height 1s cubic-bezier(.2,.8,.2,1);overflow:hidden}
+.p1 .block{background:linear-gradient(#FFD43B,#F2B705);color:#3A2C00}
+.p2 .block{background:linear-gradient(#E9ECF5,#B8BED3);color:#2B3050}
+.p3 .block{background:linear-gradient(#F4A261,#C9703A);color:#3B1E08}
+.p1.on .block{height:min(46vh,360px)} .p2.on .block{height:min(34vh,260px)} .p3.on .block{height:min(24vh,190px)}
+.crown{font-size:clamp(28px,3vw,48px);line-height:1}
+.rest{width:min(100%,960px);display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;max-height:26vh;overflow:auto}
+.rest div{display:flex;gap:10px;justify-content:space-between;background:var(--surface);border-radius:10px;padding:10px 14px;font-weight:700}
+.rest .mono{color:var(--muted)}
+
+@media (max-width:900px){
+  .join{grid-template-columns:1fr}
+  .tiles,.chart{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .why{grid-template-columns:1fr}
+  .row{grid-template-columns:44px 1fr auto;gap:12px} .row .m{display:none}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">Right Management <span>· Trivia en vivo</span></div>
+  <div class="grow"></div>
+  <span class="pinTag" id="pinTag" hidden>PIN <b id="pinSmall"></b></span>
+  <button class="icon" id="soundBtn" type="button" aria-pressed="true">Sonido: sí</button>
+  <button class="icon" id="fsBtn" type="button">Pantalla completa</button>
+</header>
+
+<main>
+  <section class="screen" id="connecting"><p style="margin:auto;color:var(--muted)">Creando la partida…</p></section>
+
+  <section class="screen" id="lobby" hidden>
+    <div class="join rise">
+      <div>
+        <div class="lbl">Entra desde tu celular a</div>
+        <div class="url" id="joinUrl"></div>
+        <div class="lbl">PIN del juego</div>
+        <div class="pin" id="pinBig"></div>
+      </div>
+      <div class="qr" id="qr" aria-label="Código QR para unirse"></div>
+    </div>
+    <div class="lobbyHead">
+      <h1 id="gameTitle">¿Qué solución ofrecerías?</h1>
+      <div class="count"><span id="pcount">0</span> jugadores</div>
+    </div>
+    <div class="players" id="players"><p class="empty">Esperando jugadores… Escanea el código o entra con el PIN.</p></div>
+    <div class="controls"><span class="hint">Haz clic en un nombre para sacarlo de la partida</span><button class="btn" id="startBtn" type="button" disabled>Empezar</button></div>
+  </section>
+
+  <section class="screen" id="preview" hidden>
+    <div class="qmeta"><span class="pill" id="pvType"></span><span class="pill" id="pvLevel"></span><span class="num" id="pvNum"></span></div>
+    <div class="qcard pop"><p class="lead" id="pvLead"></p><p class="qtext" id="pvText"></p></div>
+    <div class="bar"><i id="pvBar"></i></div>
+  </section>
+
+  <section class="screen" id="question" hidden>
+    <div class="qmeta"><span class="pill" id="qType"></span><span class="pill" id="qLevel"></span><span class="num" id="qNum"></span></div>
+    <div class="qcard"><p class="lead" id="qLead"></p><p class="qtext" id="qText"></p><p class="ctx" id="qCtx"></p></div>
+    <div class="mid">
+      <div class="ring" id="ring"><svg viewBox="0 0 100 100"><circle class="trk" cx="50" cy="50" r="44"/><circle class="val" id="ringVal" cx="50" cy="50" r="44" stroke-dasharray="276.46" stroke-dashoffset="0"/></svg><b id="secs">20</b></div>
+      <div class="answers"><b id="ansN">0</b><span>de <span id="ansOf">0</span> respondieron</span></div>
+    </div>
+    <div class="tiles" id="qTiles"></div>
+    <div class="controls"><button class="btn ghost" id="skipBtn" type="button">Cerrar respuestas</button></div>
+  </section>
+
+  <section class="screen" id="reveal" hidden>
+    <div class="qmeta"><span class="pill" id="rvNum"></span><div class="stats" id="rvStats"></div></div>
+    <div class="chart" id="chart"></div>
+    <div class="why rise" id="why"></div>
+    <div class="controls"><button class="btn" id="nextBtn" type="button">Ver ranking</button></div>
+  </section>
+
+  <section class="screen" id="leaderboard" hidden>
+    <h2 class="title">Ranking</h2>
+    <div class="board" id="board"></div>
+    <div class="controls"><span class="hint" id="lbHint"></span><button class="btn" id="nextQBtn" type="button">Siguiente pregunta</button></div>
+  </section>
+
+  <section class="screen" id="podium" hidden>
+    <h2 class="title" id="podTitle">Y el podio es…</h2>
+    <div class="stage">
+      <div class="slot p2" id="s2"><div class="who"><div class="name"></div><div class="pts"></div></div><div class="block">2</div></div>
+      <div class="slot p1" id="s1"><div class="who"><div class="crown">★</div><div class="name"></div><div class="pts"></div></div><div class="block">1</div></div>
+      <div class="slot p3" id="s3"><div class="who"><div class="name"></div><div class="pts"></div></div><div class="block">3</div></div>
+    </div>
+    <div class="rest" id="rest"></div>
+    <div class="controls" style="width:100%"><button class="btn ghost" id="newBtn" type="button">Nueva partida</button><button class="btn" id="againBtn" type="button">Jugar de nuevo</button></div>
+  </section>
+</main>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="/shared.js"></script>
+<script>
+const socket = io();
+let SOL = [], game = null, timers = [], raf = null, phase = "connecting";
+const sol = (id) => SOL.find((s) => s.id === id) || {};
+const clearTimers = () => { timers.forEach(clearTimeout); timers = []; cancelAnimationFrame(raf); };
+const later = (fn, ms) => timers.push(setTimeout(fn, ms));
+function setPhase(p) { phase = p; show(p); }
+
+function tileHtml(s, extra = "") {
+  return `<div class="tile ${extra}" style="--c:${s.color};--k:${s.ink}">${shapeSvg(s.shape)}<span>${esc(s.name)}</span></div>`;
+}
+
+// ── Crear o recuperar partida ──
+function onGame(res) {
+  if (!res?.ok) return create();
+  game = res; SOL = res.solutions;
+  try { sessionStorage.setItem("triviaHost", JSON.stringify({ pin: res.pin, key: res.key })); } catch (e) {}
+  $("#pinTag").hidden = false; $("#pinSmall").textContent = res.pin;
+}
+function create() { socket.emit("host:create", {}, onGame); }
+socket.on("connect", () => {
+  let saved = null; try { saved = JSON.parse(sessionStorage.getItem("triviaHost")); } catch (e) {}
+  if (saved) socket.emit("host:resume", saved, onGame); else create();
+});
+
+// ── Lobby ──
+let joinBase = location.origin;
+fetch("/api/info").then((r) => r.json()).then((i) => {
+  if (/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) && i.lan) joinBase = `http://${i.lan}:${location.port || i.port}`;
+}).catch(() => {}).finally(() => { if (phase === "lobby") paintJoin(); });
+
+function paintJoin() {
+  const url = `${joinBase}/play?pin=${game.pin}`;
+  $("#joinUrl").textContent = joinBase.replace(/^https?:\/\//, "") + "/play";
+  $("#pinBig").textContent = game.pin.replace(/(\d{3})(\d{3})/, "$1 $2");
+  const qr = $("#qr"); qr.innerHTML = "";
+  try { new QRCode(qr, { text: url, width: 220, height: 220, colorDark: "#0E1230", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M }); }
+  catch (e) { qr.innerHTML = '<span style="color:#0E1230;font-size:13px;text-align:center">Sin conexión para generar el QR. Usa el PIN.</span>'; }
+}
+socket.on("lobby", (d) => { syncClock(d); clearTimers(); $("#gameTitle").textContent = d.title; setPhase("lobby"); if (game) paintJoin(); });
+
+socket.on("roster", ({ players }) => {
+  $("#pcount").textContent = players.length;
+  $("#startBtn").disabled = players.length === 0;
+  const box = $("#players");
+  if (!players.length) { box.innerHTML = '<p class="empty">Esperando jugadores… Escanea el código o entra con el PIN.</p>'; return; }
+  const prev = new Set($$(".chip", box).map((c) => c.dataset.name));
+  box.innerHTML = players.map((p) => `<button type="button" class="chip ${p.connected ? "" : "off"}" data-name="${esc(p.name)}" title="Sacar de la partida" style="${prev.has(p.name) ? "animation:none" : ""}">${esc(p.name)}</button>`).join("");
+  if (players.length > prev.size && phase === "lobby") Sound.tone(700 + Math.random() * 300, 0.08, "triangle", 0.08);
+});
+$("#players").addEventListener("click", (e) => { const c = e.target.closest(".chip"); if (c) socket.emit("host:kick", { name: c.dataset.name }); });
+
+// ── Pregunta ──
+socket.on("question", (d) => {
+  syncClock(d); clearTimers();
+  const lead = d.said ? "Si un cliente te dice…" : d.type;
+  const num = `Pregunta ${d.i + 1} de ${d.total}`;
+  const lvl = `${d.level} · ${d.points} pts`;
+  for (const [p, t] of [["pv", d.type], ["q", d.type]]) { $(`#${p}Type`).textContent = t; const L = $(`#${p}Level`); L.textContent = lvl; L.className = `pill l-${d.lvl}`; $(`#${p}Num`).textContent = num; }
+  $("#pvLead").textContent = lead; $("#qLead").textContent = lead;
+  for (const id of ["#pvText", "#qText"]) { const el = $(id); el.textContent = d.text; el.classList.toggle("said", d.said); }
+  $("#qCtx").textContent = d.context; $("#qCtx").hidden = !d.context;
+  $("#qTiles").innerHTML = SOL.map((s) => tileHtml(s)).join("");
+  $("#ansN").textContent = 0;
+
+  const toOpen = d.openAt - serverNow();
+  if (toOpen > 150) {
+    setPhase("preview"); Sound.drum(2);
+    const bar = $("#pvBar"); bar.style.transition = "none"; bar.style.transform = "scaleX(1)";
+    requestAnimationFrame(() => { bar.style.transition = `transform ${toOpen}ms linear`; bar.style.transform = "scaleX(0)"; });
+    later(() => openQuestion(d), toOpen);
+  } else openQuestion(d);
+});
+function openQuestion(d) {
+  setPhase("question"); Sound.go();
+  const total = d.time * 1000, C = 276.46; let lastSec = null;
+  const loop = () => {
+    const left = Math.max(0, d.closeAt - serverNow());
+    const s = Math.ceil(left / 1000);
+    $("#secs").textContent = s;
+    $("#ringVal").setAttribute("stroke-dashoffset", String(C * (1 - left / total)));
+    $("#ring").classList.toggle("low", s <= 5);
+    if (s !== lastSec && s <= 5 && s > 0) Sound.tick();
+    lastSec = s;
+    if (left > 0 && phase === "question") raf = requestAnimationFrame(loop);
+  };
+  loop();
+}
+socket.on("answerCount", ({ n, of }) => { $("#ansN").textContent = n; $("#ansOf").textContent = of; });
+
+// ── Resultado de la pregunta ──
+socket.on("reveal", (d) => {
+  syncClock(d); clearTimers(); setPhase("reveal"); Sound.reveal();
+  $("#rvNum").textContent = `Pregunta ${d.i + 1} de ${d.total}`;
+  const pct = d.answered ? Math.round((d.correct / Math.max(d.players, 1)) * 100) : 0;
+  $("#rvStats").innerHTML = `<span class="pill">${d.correct} de ${d.players} acertaron · ${pct}%</span>` +
+    (d.fastest ? `<span class="pill">Más rápido: ${esc(d.fastest.name)} · ${d.fastest.secs} s</span>` : "");
+  const max = Math.max(1, ...Object.values(d.counts));
+  $("#chart").innerHTML = SOL.map((s) => `<div class="col ${s.id === d.answer ? "" : "dim"}" style="--c:${s.color};--k:${s.ink}">
+      <div class="n">${d.counts[s.id]}</div><div class="b" data-h="${(d.counts[s.id] / max) * 100}"></div>${tileHtml(s)}</div>`).join("");
+  requestAnimationFrame(() => requestAnimationFrame(() => $$(".col .b").forEach((b) => (b.style.height = `max(10px, ${b.dataset.h}%)`))));
+  const a = sol(d.answer);
+  $("#why").innerHTML = `<div class="badge" style="--c:${a.color};--k:${a.ink}">${shapeSvg(a.shape)} ${esc(a.name)} ✓</div><div><p>${esc(d.why)}</p><small>Referencia: ${esc(d.ref)}</small></div>`;
+  $("#nextBtn").textContent = d.last ? "Ver el podio" : "Ver ranking";
+});
+
+// ── Ranking ──
+socket.on("leaderboard", (d) => {
+  syncClock(d); clearTimers(); setPhase("leaderboard"); Sound.tone(440, 0.15, "triangle");
+  $("#board").innerHTML = d.top.map((p, i) => {
+    const m = p.move > 0 ? `<span class="m up">▲ ${p.move}</span>` : p.move < 0 ? `<span class="m down">▼ ${-p.move}</span>` : `<span class="m same">—</span>`;
+    return `<div class="row rise" style="animation-delay:${i * 90}ms"><span class="r">${p.rank}</span><span>${esc(p.name)}${p.streak >= 3 ? ` <small style="color:var(--gold);font:700 .6em var(--f-mono)">RACHA ×${p.streak}</small>` : ""}</span><span class="s">${p.score.toLocaleString("es-PE")}</span>${m}</div>`;
+  }).join("") || '<p style="text-align:center;color:var(--muted)">Nadie sumó puntos todavía.</p>';
+  const left = d.total - d.i - 1;
+  $("#lbHint").textContent = left === 1 ? "Queda el reto final" : `Quedan ${left} preguntas`;
+  $("#nextQBtn").textContent = left === 1 ? "Ir al reto final" : "Siguiente pregunta";
+});
+
+// ── Podio ──
+socket.on("podium", (d) => {
+  syncClock(d); clearTimers(); setPhase("podium");
+  $("#podTitle").textContent = "Y el podio es…";
+  [1, 2, 3].forEach((n) => {
+    const s = $(`#s${n}`), p = d.ranking[n - 1];
+    s.classList.remove("on"); s.style.visibility = p ? "visible" : "hidden";
+    $(".name", s).textContent = p ? p.name : ""; $(".pts", s).textContent = p ? `${p.score.toLocaleString("es-PE")} pts · ${p.correct}/${d.total}` : "";
+  });
+  $("#rest").innerHTML = d.ranking.slice(3).map((p) => `<div><span>${p.rank}. ${esc(p.name)}</span><span class="mono">${p.score.toLocaleString("es-PE")}</span></div>`).join("");
+  $("#rest").hidden = d.ranking.length <= 3;
+  later(() => { $("#s3").classList.add("on"); Sound.drum(1); }, 900);
+  later(() => { $("#s2").classList.add("on"); Sound.drum(2); }, 2300);
+  later(() => { Sound.drum(4); }, 3600);
+  later(() => { $("#s1").classList.add("on"); Sound.fanfare(); confetti(); $("#podTitle").textContent = d.ranking[0] ? `¡Felicitaciones, ${d.ranking[0].name}!` : "Fin del juego"; }, 4400);
+});
+
+// ── Controles ──
+const next = () => { Sound.unlock(); socket.emit("host:next"); };
+$("#startBtn").onclick = next; $("#skipBtn").onclick = next; $("#nextBtn").onclick = next; $("#nextQBtn").onclick = next;
+$("#againBtn").onclick = () => socket.emit("host:restart");
+$("#newBtn").onclick = () => { try { sessionStorage.removeItem("triviaHost"); } catch (e) {} location.reload(); };
+$("#soundBtn").onclick = (e) => { Sound.unlock(); Sound.on = !Sound.on; e.currentTarget.textContent = `Sonido: ${Sound.on ? "sí" : "no"}`; e.currentTarget.setAttribute("aria-pressed", Sound.on); };
+$("#fsBtn").onclick = () => { Sound.unlock(); (document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.())?.catch?.(() => {}); };
+document.addEventListener("pointerdown", () => Sound.unlock(), { once: true });
+document.addEventListener("keydown", (e) => {
+  if (e.target.tagName === "BUTTON" || e.target.tagName === "INPUT") return;
+  if (e.key === "Enter" || e.key === " ") {
+    e.preventDefault();
+    const btn = { lobby: "#startBtn", question: "#skipBtn", reveal: "#nextBtn", leaderboard: "#nextQBtn" }[phase];
+    if (btn && !$(btn).disabled) $(btn).click();
+  }
+  if (e.key.toLowerCase() === "f") $("#fsBtn").click();
+});
+socket.on("disconnect", () => { if (phase !== "connecting") $("#pinSmall").textContent = (game?.pin || "") + " · reconectando…"; });
+socket.on("connect", () => { if (game) $("#pinSmall").textContent = game.pin; });
+</script>
+</body>
+</html>

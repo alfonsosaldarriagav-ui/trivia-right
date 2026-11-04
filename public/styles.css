@@ -1,0 +1,35 @@
+/* Escenario de concurso: fondo índigo profundo, tarjetas sólidas de color por solución. Tema único oscuro (proyector). */
+:root{
+  --bg:#0E1230; --bg2:#151A42; --surface:#1C2255; --line:#2C3470;
+  --ink:#F3F4FF; --muted:#A3A9D6; --accent:#7B8CFF; --gold:#F2B705;
+  --ok:#22C55E; --bad:#EF4444;
+  --f-display:"Bricolage Grotesque","Avenir Next",system-ui,sans-serif;
+  --f-body:"Figtree","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:radial-gradient(1200px 700px at 80% -10%,#232B6E 0%,transparent 60%),radial-gradient(900px 600px at -10% 110%,#1B2160 0%,transparent 55%),var(--bg);
+  background-attachment:fixed;color:var(--ink);font:500 16px/1.45 var(--f-body);-webkit-font-smoothing:antialiased}
+[hidden]{display:none!important}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+
+.btn{border:0;border-radius:14px;padding:16px 26px;font:800 18px/1 var(--f-display);background:var(--ink);color:var(--bg);box-shadow:0 5px 0 #8C93C7;transition:transform .08s,box-shadow .08s}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 #8C93C7}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--ink);box-shadow:none;border:2px solid var(--line)}
+
+.shape{width:1em;height:1em;flex:none;fill:currentColor}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+.pill{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border-radius:999px;background:var(--surface);border:1px solid var(--line);font:700 13px/1 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.pill.l-b{color:#6EE7A8}.pill.l-i{color:#FCD34D}.pill.l-a{color:#FCA5A5}.pill.l-f{background:var(--gold);color:#1A1400;border-color:var(--gold)}
+
+@keyframes rise{from{transform:translateY(16px);opacity:0}to{transform:none;opacity:1}}
+@keyframes pop{0%{transform:scale(.7);opacity:0}70%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}
+.rise{animation:rise .45s cubic-bezier(.2,.8,.2,1) both}
+.pop{animation:pop .45s cubic-bezier(.2,.8,.2,1) both}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
