@@ -6,6 +6,7 @@ Juego tipo Kahoot para los BDMs. Una pantalla se proyecta y cada participante ju
 
 - **Pantalla del anfitrión (`/host`)**: PIN de 6 dígitos y código QR para unirse, lista de jugadores en vivo, preguntas con cuenta regresiva, gráfico de respuestas, explicación con la diapositiva de referencia, ranking con cambios de posición y podio final con confeti y música.
 - **Pantalla del jugador (`/play`)**: botones grandes de colores y formas (una por solución), resultado inmediato, puntos ganados, racha, puesto actual y distancia con el jugador de adelante.
+- **5 preguntas, una por solución**: dos básicas, una intermedia, una avanzada y un reto final. Una partida dura unos 5 minutos.
 - **Puntaje estilo Kahoot**: quien responde más rápido gana más puntos (entre el 50% y el 100% del puntaje de la pregunta). Desde el tercer acierto seguido se suman +50 puntos por racha.
 - **Reconexión**: si un jugador recarga o pierde señal, vuelve a entrar con su puntaje intacto.
 
